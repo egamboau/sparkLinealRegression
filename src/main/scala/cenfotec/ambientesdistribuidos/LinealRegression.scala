@@ -1,11 +1,14 @@
 package cenfotec.ambientesdistribuidos
 
+import java.io.BufferedOutputStream
+
+import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.{SparkConf, SparkContext}
 
 object LinealRegression{
 
-  def processFile(filePath: String, sc: SparkContext): Unit = {
-    val csvFile = sc.textFile(filePath)
+  def processFile(originPath: String, destinationPath: String, sc: SparkContext): Unit = {
+    val csvFile = sc.textFile(originPath)
     val calculatedValues = csvFile.map(s => s.split(","))
       .map(array => {
         val X1 = array(0).toDouble
@@ -41,8 +44,13 @@ object LinealRegression{
     val dividend = (calculatedValues._3 *  calculatedValues._4) - Math.pow(calculatedValues._8, 2)
     val A = ((calculatedValues._4 * calculatedValues._5) - (calculatedValues._7 * calculatedValues._6)) / dividend
     val B = ((calculatedValues._3 * calculatedValues._6) - (calculatedValues._7 * calculatedValues._5)) / dividend
-    val M= (calculatedValues._8 / calculatedValues._9) - (A * (calculatedValues._1/calculatedValues._9)) - (B * (calculatedValues._2 / calculatedValues._9))
+    val M = (calculatedValues._8 / calculatedValues._9) - (A * (calculatedValues._1/calculatedValues._9)) - (B * (calculatedValues._2 / calculatedValues._9))
 
+    val fs = FileSystem.get(sc.hadoopConfiguration)
+    val output = fs.create(new Path(destinationPath))
+    val os = new BufferedOutputStream(output)
+    os.write(s"$M,$A,$B".getBytes())
+    os.close()
     println(s"X ~ $M + $A A + $B B")
   }
 
@@ -53,9 +61,10 @@ object LinealRegression{
       .setMaster("local[2]") //remove this for final delivery. This is only for IntelliJ
     val sc = new SparkContext(conf)
     //first argument will be the path for the data
-    val filePath = args(0)
+    val originPath = args(0)
+    val destinationPath = args(1)
 
-    processFile(filePath, sc)
+    processFile(originPath, destinationPath, sc)
 
   }
 
