@@ -56,7 +56,7 @@ object ModelEvaluation {
       },
       (acc,value) => (acc._1 + value._1, acc._2+value._2)
     )
-    val MAPE = MAPE_Values._1 / MAPE_Values._2
+    val MAPE = (100/MAPE_Values._2) * MAPE_Values._1
     System.out.println(s"MAPE is $MAPE")
   }
 
