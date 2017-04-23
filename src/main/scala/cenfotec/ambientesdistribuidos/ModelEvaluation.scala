@@ -64,8 +64,7 @@ object ModelEvaluation {
   def main(args:Array[String]): Unit = {
 
     val conf = new SparkConf()
-      .setAppName("linealRegression")
-      .setMaster("local[2]") //remove this for final delivery. This is only for IntelliJ
+      .setAppName("modelEvaluation")
     val sc = new SparkContext(conf)
     //first argument will be the path for the data
     val modelPath = args(0)
