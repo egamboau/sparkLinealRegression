@@ -2,6 +2,8 @@ package cenfotec.ambientesdistribuidos
 
 import org.apache.spark.{SparkConf, SparkContext}
 
+import scala.collection.mutable.HashMap
+
 /**
   * Created by vagrant on 4/12/17.
   */
@@ -16,47 +18,72 @@ object ModelEvaluation {
         val M = splitted(0).toDouble
         val A = splitted(1).toDouble
         val B = splitted(2).toDouble
-        (M, A, B)
+        HashMap("M"->M, "A"->A, "B"->B)
       })
     .first()
 
     val testDataSet = sc.textFile(testDataSetPath).map(s => s.split(","))
     val estimatesAndObserved = testDataSet.map(array =>{
-      val observed = array(0).toDouble
-      val A = array(1).toDouble
-      val B = array(2).toDouble
+      val observed = array(2).toDouble
+      val A = array(0).toDouble
+      val B = array(1).toDouble
 
       //using A and B, estimate the value
-      val estimate = model._1 + model._2*A + model._3*B
+      val estimate = model("M") + model("A")*A + model("B")*B
       //return the difference, the observed, and a counter.
-      (estimate - observed , observed, 1, observed - estimate)
+      HashMap("EstimateMinusObserved" -> (estimate - observed) , "Observed" -> observed,"Count" -> 1.0, "ObservedMinusStimate" -> (observed - estimate))
     }).persist()
 
     //calculate the RMSE. Based on http://www.statisticshowto.com/rmse/
-    val RMSE_values = estimatesAndObserved.aggregate((0.0,0.0))(
-      (acc, value) => (acc._1 + Math.pow(value._1, 2), acc._2 + value._3),
-      (acc, value) => (acc._1 + value._1, acc._2 + value._2))
+    val RMSE_values = estimatesAndObserved.aggregate(HashMap("Residuals" -> 0.0,"Count" -> 0.0))(
+      (acc, value) => {
+        acc("Residuals") += Math.pow(value("EstimateMinusObserved"), 2)
+        acc("Count") += value("Count")
+        acc
+      },
+      (acc, value) => {
+        for ((key, value ) <- value) {
+            acc(key) += value
+          }
+        acc
+      })
 
-    val RMSE = Math.sqrt(RMSE_values._1 / RMSE_values._2)
+    val RMSE = Math.sqrt(RMSE_values("Residuals") / RMSE_values("Count"))
     System.out.println(s"RMSE is $RMSE")
     //calculate MAE, based on https://en.wikipedia.org/wiki/Mean_absolute_error
-     val MAE_values = estimatesAndObserved.aggregate((0.0,0.0))(
-       (acc, value) => (acc._1 + Math.abs(value._1), acc._2 + value._3),
-       (acc, value) => (acc._1 + value._1, acc._2 + value._2)
+     val MAE_values = estimatesAndObserved.aggregate(HashMap("Errors" -> 0.0,"Count" ->0.0))(
+       (acc, value) => {
+        acc("Errors") += Math.pow(value("EstimateMinusObserved"), 2)
+        acc("Count") += value("Count")
+        acc
+       },
+       (acc, value) => {
+        for ((key, value ) <- value) {
+            acc(key) += value
+          }
+        acc
+      }
      )
-    val MAE = MAE_values._1 / MAE_values._2
+    val MAE = MAE_values("Errors") / MAE_values("Count")
     System.out.println(s"MAE is $MAE")
 
     //calculate MAPE, based on https://en.wikipedia.org/wiki/Mean_absolute_percentage_error
-    val MAPE_Values = estimatesAndObserved.aggregate((0.0, 0.0)) (
+    val MAPE_Values = estimatesAndObserved.aggregate(HashMap("Difference"-> 0.0, "Count" -> 0.0)) (
       (acc, value) =>  {
-        val difference = value._4
-        val absoluteValue = Math.abs(difference / value._2)
-        (acc._1 + absoluteValue, acc._2 + value._3)
+        val difference = value("ObservedMinusStimate")
+        val absoluteValue = Math.abs(difference / value("Observed"))
+        acc("Difference") += absoluteValue
+        acc("Count") += value("Count")
+        acc
       },
-      (acc,value) => (acc._1 + value._1, acc._2+value._2)
+      (acc,value) => {
+        for ((key, value ) <- value) {
+            acc(key) += value
+          }
+        acc
+      }
     )
-    val MAPE = (100/MAPE_Values._2) * MAPE_Values._1
+    val MAPE = (100/MAPE_Values("Count")) * MAPE_Values("Difference")
     System.out.println(s"MAPE is $MAPE")
   }
 
