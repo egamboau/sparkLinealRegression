@@ -33,8 +33,7 @@ object LinealRegression{
         HashMap("X1"->X1, "X2"-> X2, "X1Squared"->X1X1, "X2Squared"->X2X2, "X1Y" -> X1Y, "X1X2"-> X1X2, "X2Y"-> X2Y,"Y"-> Y, "Accumulator" -> 1.0)
       }}.aggregate( 
         //Aggregation that will implement all of the sums from the previous values. The addition is made per-key element wise.
-        HashMap("X1"->0.0, "X2"-> 0.0, "X1Squared"->0.0, "X2Squared"->0.0, "X1Y" -> 0.0, "X1X2"-> 0.0, "X2Y"-> 0.0, "Y"-> 0.0, "Accumulator" -> 0.0)) 
-        ((acc, value) => {
+        HashMap("X1"->0.0, "X2"-> 0.0, "X1Squared"->0.0, "X2Squared"->0.0, "X1Y" -> 0.0, "X1X2"-> 0.0, "X2Y"-> 0.0, "Y"-> 0.0, "Accumulator" -> 0.0))((acc, value) => {
           for ((key, value ) <- value) {
             acc(key) += value
           }
