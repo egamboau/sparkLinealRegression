@@ -9,13 +9,13 @@ Además, existe una clase para verificar el modelo, calculando RMSE, MAE y MAPE.
 
 Para la clase "cenfotec.ambientesdistribuidos.LinealRegression" son necesarios 2 archivos, los cuales se especifican como parametro en el siguiente orden: 
 1. Un archivo CSV que recoge las observaciones. El orden de las columnas debe ser:
-  1. X1, la primer variable estudiada
-  2. X2, la sgunda variable estudiada
-  3. Y: El valor observado, basado en X1 y X2
+    1. X1, la primer variable estudiada
+    2. X2, la sgunda variable estudiada
+    3. Y: El valor observado, basado en X1 y X2
 2. Un archivo de salida, donde se escribirá el modelo resultante. El formato de la salida es:
-  1. M: EL valor donde el modelo interseca los ejes X1 y X2
-  2. A: El coeficiente por el que se debe multiplicar X1
-  3. B: El coeficiente por el que se debe multiplicar X2
+    1. M: EL valor donde el modelo interseca los ejes X1 y X2
+    2. A: El coeficiente por el que se debe multiplicar X1
+    3. B: El coeficiente por el que se debe multiplicar X2
 
 _NOTA_: Ningún archivo CSV debe de contener encabezados
 
