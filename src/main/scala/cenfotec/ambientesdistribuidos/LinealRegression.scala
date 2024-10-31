@@ -71,6 +71,9 @@ object LinealRegression{
     //initialize spark context
     val conf = new SparkConf(loadDefaults = true)
       .setAppName("linealRegression")
+    if (!conf.contains("spark.master")) {
+      conf.setMaster("local[*]")
+    }
 
     val sc = new SparkContext(conf)
     //first argument will be the path for the data

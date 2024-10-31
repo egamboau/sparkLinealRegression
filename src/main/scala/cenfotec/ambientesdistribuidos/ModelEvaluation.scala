@@ -92,6 +92,10 @@ object ModelEvaluation {
 
     val conf = new SparkConf()
       .setAppName("modelEvaluation")
+
+    if (!conf.contains("spark.master")) {
+      conf.setMaster("local[*]")
+    }
     val sc = new SparkContext(conf)
     //first argument will be the path for the data
     val modelPath = args(0)
